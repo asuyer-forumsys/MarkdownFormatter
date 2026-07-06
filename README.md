@@ -43,6 +43,36 @@ python3 markdown_formatter.py path/to/note.md
 python3 -m mdnotes_formatter.cli path/to/note.md
 ```
 
+## Frontend / backend architecture
+
+- **Backend**: `mdnotes_formatter.backend`
+  - Endpoint contracts: `mdnotes_formatter/backend/contracts.py`
+  - Endpoint handlers: `mdnotes_formatter/backend/endpoints.py`
+- **Frontend (CLI)**: `mdnotes_formatter/cli.py`
+  - Invokes backend endpoints only (no formatting logic in CLI layer).
+
+Backend endpoint reference: `docs/backend-endpoints.md`
+
+### CLI frontend commands
+
+```bash
+# Format a file via backend endpoint
+python3 -m mdnotes_formatter.cli format path/to/note.md
+
+# List endpoint catalog (JSON)
+python3 -m mdnotes_formatter.cli endpoints
+
+# Health check endpoint
+python3 -m mdnotes_formatter.cli health
+```
+
+Backward compatibility is preserved:
+
+```bash
+python3 -m mdnotes_formatter.cli path/to/note.md
+python3 markdown_formatter.py path/to/note.md
+```
+
 ## Install editable + console script (optional)
 
 ```bash
@@ -55,8 +85,11 @@ mdnotes-format path/to/note.md
 - `mdnotes_formatter/filename_rules.py` — filename normalization and inflection helpers
 - `mdnotes_formatter/frontmatter_rules.py` — frontmatter and alias generation
 - `mdnotes_formatter/body_rules.py` — body normalization and spacing rules
-- `mdnotes_formatter/formatter.py` — file I/O orchestration
-- `mdnotes_formatter/cli.py` — command-line interface
+- `mdnotes_formatter/formatter.py` — file I/O orchestration used by backend endpoints
+- `mdnotes_formatter/backend/contracts.py` — backend request/response endpoint contracts
+- `mdnotes_formatter/backend/endpoints.py` — backend endpoint handlers
+- `mdnotes_formatter/cli.py` — frontend command-line interface that invokes backend endpoints
+- `docs/backend-endpoints.md` — backend endpoint reference documentation
 
 ## Requirement-to-test traceability
 
