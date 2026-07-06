@@ -35,6 +35,13 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+function highlightMarkdownLine(line) {
+  if (window.hljs?.highlight) {
+    return window.hljs.highlight(line, { language: "markdown" }).value;
+  }
+  return escapeHtml(line);
+}
+
 function renderCodePane(target, content, changedLines, sideClass) {
   const lines = content.split(/\r?\n/);
   if (lines.length > 0 && lines[lines.length - 1] === "") {
@@ -46,19 +53,19 @@ function renderCodePane(target, content, changedLines, sideClass) {
     .map((line, index) => {
       const lineNumber = index + 1;
       const lineClass = changed.has(lineNumber) ? `code-line ${sideClass}` : "code-line";
+      const highlightedLine = highlightMarkdownLine(line);
       return `
         <div class="${lineClass}">
           <span class="line-no">${lineNumber}</span>
-          <pre class="line-code"><code class="language-markdown">${escapeHtml(line)}</code></pre>
+          <div class="line-code"><code class="line-code-inner language-markdown">${highlightedLine || " "}</code></div>
         </div>
       `;
     })
     .join("");
 
-  target.innerHTML = html || '<div class="code-line"><span class="line-no">1</span><pre class="line-code"><code class="language-markdown"></code></pre></div>';
-  target.querySelectorAll("pre code").forEach((block) => {
-    if (window.hljs) window.hljs.highlightElement(block);
-  });
+  target.innerHTML =
+    html ||
+    '<div class="code-line"><span class="line-no">1</span><div class="line-code"><code class="line-code-inner language-markdown"> </code></div></div>';
 }
 
 function renderFileList(files) {
