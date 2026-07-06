@@ -1,0 +1,2 @@
+[console_scripts]
+mdnotes-format = mdnotes_formatter.cli:main
