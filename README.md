@@ -64,6 +64,9 @@ python3 -m mdnotes_formatter.cli endpoints
 
 # Health check endpoint
 python3 -m mdnotes_formatter.cli health
+
+# Start local web UI frontend
+python3 -m mdnotes_formatter.cli web
 ```
 
 Backward compatibility is preserved:
@@ -89,7 +92,26 @@ mdnotes-format path/to/note.md
 - `mdnotes_formatter/backend/contracts.py` — backend request/response endpoint contracts
 - `mdnotes_formatter/backend/endpoints.py` — backend endpoint handlers
 - `mdnotes_formatter/cli.py` — frontend command-line interface that invokes backend endpoints
+- `mdnotes_formatter/web/app.py` — local web server adapter exposing backend endpoints via HTTP
+- `mdnotes_formatter/web/static/` — web UI frontend assets (HTML/CSS/JS)
 - `docs/backend-endpoints.md` — backend endpoint reference documentation
+
+## Web UI frontend
+
+Start the local server:
+
+```bash
+python3 -m mdnotes_formatter.cli web --host 127.0.0.1 --port 8765
+```
+
+Open `http://127.0.0.1:8765` in your browser.
+
+Features:
+- Graphical markdown file explorer (backed by backend file-list endpoint)
+- Side-by-side preview: original (left) vs formatted output (right)
+- Diff-like changed line highlighting on both sides
+- Syntax-highlighted markdown code view
+- **Format** button that applies changes (writes file + backup, rename if needed)
 
 ## Requirement-to-test traceability
 

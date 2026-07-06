@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Markdown Formatter UI</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/markdown.min.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>Markdown Formatter</h1>
+      <div id="status">Loading files…</div>
+    </header>
+
+    <main>
+      <aside>
+        <div class="section-title">Markdown files</div>
+        <label class="root-label">
+          Root:
+          <input id="rootInput" type="text" placeholder="(default backend root)" />
+        </label>
+        <button id="refreshBtn">Refresh file list</button>
+        <ul id="fileList"></ul>
+      </aside>
+
+      <section class="content">
+        <div class="toolbar">
+          <div>
+            <strong id="selectedPath">No file selected</strong>
+            <div id="renameInfo"></div>
+          </div>
+          <button id="formatBtn" disabled>Format</button>
+        </div>
+
+        <div class="diff-grid">
+          <div class="panel">
+            <h2>Original</h2>
+            <div id="leftPane" class="code-pane"></div>
+          </div>
+          <div class="panel">
+            <h2>Formatted preview</h2>
+            <div id="rightPane" class="code-pane"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>
