@@ -1,6 +1,6 @@
 """Typed request/response contracts for backend endpoints.
 
-These dataclasses act as a stable API boundary between frontend layers and the
+These dataclasses form a stable API boundary between frontend layers and the
 backend implementation.
 """
 
@@ -11,7 +11,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class FormatFileRequest:
-    """Input payload for the format-file backend endpoint.
+    """Input payload for the mutating format-file backend endpoint.
 
     Attributes:
         path: Path string to an existing `.md` file that should be reformatted.
@@ -22,7 +22,7 @@ class FormatFileRequest:
 
 @dataclass(frozen=True)
 class FormatFileResponse:
-    """Output payload from the format-file backend endpoint.
+    """Output payload from the mutating format-file backend endpoint.
 
     Attributes:
         original_path: Original file path received by the endpoint.
@@ -38,12 +38,71 @@ class FormatFileResponse:
 
 
 @dataclass(frozen=True)
+class PreviewFileRequest:
+    """Input payload for the preview endpoint.
+
+    Attributes:
+        path: Path string to an existing `.md` file.
+    """
+
+    path: str
+
+
+@dataclass(frozen=True)
+class PreviewFileResponse:
+    """Output payload for non-mutating formatting preview.
+
+    Attributes:
+        original_path: Source file path.
+        updated_path: Path that would result after apply.
+        renamed: Whether apply would rename the file.
+        original_content: Current markdown text on disk.
+        formatted_content: Rendered markdown after applying formatter rules.
+        changed_left_lines: 1-indexed source line numbers involved in change.
+        changed_right_lines: 1-indexed rendered line numbers involved in change.
+    """
+
+    original_path: str
+    updated_path: str
+    renamed: bool
+    original_content: str
+    formatted_content: str
+    changed_left_lines: list[int]
+    changed_right_lines: list[int]
+
+
+@dataclass(frozen=True)
+class ListMarkdownFilesRequest:
+    """Input payload for recursive markdown file listing.
+
+    Attributes:
+        root: Optional directory path to list under. When omitted, backend root
+            is used.
+    """
+
+    root: str | None = None
+
+
+@dataclass(frozen=True)
+class ListMarkdownFilesResponse:
+    """Output payload for markdown file listing.
+
+    Attributes:
+        root: Absolute resolved directory used for listing.
+        files: Absolute markdown file paths under the root (excluding .bak).
+    """
+
+    root: str
+    files: list[str]
+
+
+@dataclass(frozen=True)
 class EndpointInfo:
     """Describes one backend endpoint.
 
     Attributes:
         name: Stable endpoint identifier.
-        method: Logical invocation style (always `local-call` for now).
+        method: Logical invocation style (`local-call` for now).
         summary: One-line human-readable endpoint purpose.
         request_type: Name of the request contract type.
         response_type: Name of the response contract type.

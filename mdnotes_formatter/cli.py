@@ -1,8 +1,8 @@
-"""CLI frontend for the markdown formatter backend.
+"""CLI frontend for markdown formatter backend services.
 
 Architecture note:
 - This module is the *frontend* layer.
-- It should only orchestrate argument parsing / presentation.
+- It orchestrates argument parsing and presentation only.
 - Business logic is delegated to backend endpoints.
 """
 
@@ -13,6 +13,7 @@ import json
 from typing import Sequence
 
 from .backend import FormatFileRequest, MarkdownFormatterBackend
+from .web.app import serve_web_ui
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -39,11 +40,23 @@ def build_parser() -> argparse.ArgumentParser:
         help="Check backend health endpoint.",
     )
 
+    web_parser = subparsers.add_parser(
+        "web",
+        help="Start local web UI frontend.",
+    )
+    web_parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
+    web_parser.add_argument("--port", default=8765, type=int, help="Bind port (default: 8765)")
+    web_parser.add_argument(
+        "--root",
+        default=None,
+        help="Optional filesystem root for backend file explorer (default: current directory)",
+    )
+
     return parser
 
 
 def _print_endpoints(backend: MarkdownFormatterBackend) -> None:
-    """Print backend endpoint catalog as JSON for easy frontend consumption."""
+    """Print backend endpoint catalog as JSON for frontend introspection."""
     payload = [endpoint.__dict__ for endpoint in backend.endpoint_list_endpoints()]
     print(json.dumps(payload, indent=2))
 
@@ -60,7 +73,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
 
     normalized_argv = list(argv) if argv is not None else None
-    known_commands = {"format", "endpoints", "health"}
+    known_commands = {"format", "endpoints", "health", "web"}
 
     # Legacy compatibility shim:
     # if first token is not a known command, reinterpret invocation as
@@ -69,6 +82,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         normalized_argv = ["format", *normalized_argv]
 
     args = parser.parse_args(normalized_argv)
+
+    if args.command == "web":
+        serve_web_ui(host=args.host, port=args.port, root=args.root)
+        return 0
+
     backend = MarkdownFormatterBackend()
 
     if args.command == "endpoints":

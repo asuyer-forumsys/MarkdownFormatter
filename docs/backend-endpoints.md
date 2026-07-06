@@ -1,24 +1,24 @@
 # Backend endpoint documentation
 
-This document describes the backend endpoint surface consumed by the CLI
-frontend today and intended for future GUI integration.
+This document describes the backend endpoint surface consumed by both:
 
-## Overview
+- CLI frontend (`mdnotes_formatter/cli.py`)
+- Web UI frontend (`mdnotes_formatter/web/app.py`)
 
-Backend implementation class: `mdnotes_formatter.backend.endpoints.MarkdownFormatterBackend`
+## Backend class
 
-The backend currently uses `local-call` invocation style (Python method calls),
-but endpoint naming/contracts are intentionally stable to support future
-transport adapters (HTTP/RPC/desktop bridge).
+`mdnotes_formatter.backend.endpoints.MarkdownFormatterBackend`
 
-## Endpoint: `health`
+Invocation style is currently `local-call` (direct Python method calls), but
+endpoint names/contracts are stable so they can be adapted to HTTP/RPC later.
 
-- **Method type:** `local-call`
+## Endpoint catalog
+
+### `health`
+
 - **Handler:** `endpoint_health()`
-- **Request body:** none
-- **Response:** `dict[str, str]`
-
-### Response shape
+- **Request:** none
+- **Response:**
 
 ```json
 {
@@ -27,54 +27,106 @@ transport adapters (HTTP/RPC/desktop bridge).
 }
 ```
 
-## Endpoint: `list_endpoints`
+### `list_markdown_files`
 
-- **Method type:** `local-call`
-- **Handler:** `endpoint_list_endpoints()`
-- **Request body:** none
-- **Response:** `list[EndpointInfo]`
-
-### `EndpointInfo` fields
-
-- `name` (`str`): stable endpoint identifier.
-- `method` (`str`): invocation style (`local-call`).
-- `summary` (`str`): human-readable endpoint description.
-- `request_type` (`str`): request contract type name.
-- `response_type` (`str`): response contract type name.
-
-## Endpoint: `format_file`
-
-- **Method type:** `local-call`
-- **Handler:** `endpoint_format_file(request: FormatFileRequest)`
-- **Request type:** `FormatFileRequest`
-- **Response type:** `FormatFileResponse`
-
-### Request contract: `FormatFileRequest`
+- **Handler:** `endpoint_list_markdown_files(request: ListMarkdownFilesRequest)`
+- **Request contract:**
 
 ```json
 {
-  "path": "/absolute/or/relative/path/to/note.md"
+  "root": "optional/path"
 }
 ```
 
-### Response contract: `FormatFileResponse`
+- **Response contract:**
 
 ```json
 {
-  "original_path": "/path/to/original-note.md",
-  "updated_path": "/path/to/Updated-note.md",
-  "backup_path": "/path/to/original-note.md.bak",
+  "root": "/absolute/resolved/root",
+  "files": [
+    "/absolute/path/to/a.md",
+    "/absolute/path/to/nested/b.md"
+  ]
+}
+```
+
+Notes:
+- Lists markdown files recursively.
+- Excludes `*.md.bak`.
+- Access is constrained to backend root.
+
+### `preview_file`
+
+- **Handler:** `endpoint_preview_file(request: PreviewFileRequest)`
+- **Request contract:**
+
+```json
+{
+  "path": "/absolute/or/relative/path/to/file.md"
+}
+```
+
+- **Response contract:**
+
+```json
+{
+  "original_path": "/path/original.md",
+  "updated_path": "/path/Updated-file.md",
+  "renamed": true,
+  "original_content": "...",
+  "formatted_content": "...",
+  "changed_left_lines": [1, 2, 7],
+  "changed_right_lines": [1, 2, 9]
+}
+```
+
+Notes:
+- Non-mutating endpoint.
+- Designed for diff-like preview UI.
+
+### `format_file`
+
+- **Handler:** `endpoint_format_file(request: FormatFileRequest)`
+- **Request contract:**
+
+```json
+{
+  "path": "/absolute/or/relative/path/to/file.md"
+}
+```
+
+- **Response contract:**
+
+```json
+{
+  "original_path": "/path/original.md",
+  "updated_path": "/path/Updated-file.md",
+  "backup_path": "/path/original.md.bak",
   "renamed": true
 }
 ```
 
-### Side effects
+Side effects:
+- Writes formatted markdown content.
+- Creates backup `.bak` file.
+- May rename the source file.
 
-- Rewrites markdown content in place using formatting requirements.
-- Creates `<original>.bak` backup from pre-format content.
-- May rename file based on filename normalization rules.
+## Error behavior
 
-### Error behavior
+The following endpoint methods may raise:
 
-- Raises `ValueError` when `path` does not end with `.md`.
-- Raises `FileNotFoundError` when target file does not exist.
+- `ValueError`
+  - Non-`.md` file
+  - Attempt to access path outside backend root
+- `FileNotFoundError`
+  - Missing path or invalid root directory
+
+## Web adapter routes
+
+The local web server (`mdnotes_formatter/web/app.py`) maps these endpoints to:
+
+- `GET /api/health` -> `health`
+- `GET /api/endpoints` -> endpoint metadata catalog
+- `GET /api/files?root=...` -> `list_markdown_files`
+- `POST /api/preview` -> `preview_file`
+- `POST /api/format` -> `format_file`

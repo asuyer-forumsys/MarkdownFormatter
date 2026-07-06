@@ -1,15 +1,12 @@
 ---
 aliases:
-  - 01 Bad Filename And H1
-  - 01 bad filename and h1
-  - 01 bad filename and h1s
-  - 01-bad-filename-and-h1
+  - wrong alias only
 ---
 
 Topics covered
 - Build setup
 
-# 01 Bad Filename And H1
+# Totally Different Title
 
 This note has an H1 that does not match the file name.
 
