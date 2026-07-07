@@ -44,9 +44,10 @@ print('hi')
     # Frontmatter with aliases
     assert content.startswith("---\n")
     assert "aliases:" in content
-    assert "- My note about dogs" in content
-    assert "- My note about dog" in content
-    assert "- My notes about dogs" in content
+    assert "- My Note About Dogs" in content
+    assert "- my note about dogs" in content
+    assert "- My note about dog" not in content
+    assert "- My notes about dogs" not in content
 
     # Topics covered then single H1 title
     assert "\nTopics covered\n" in content
