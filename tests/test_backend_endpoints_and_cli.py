@@ -81,6 +81,18 @@ def test_backend_format_file_can_apply_selected_opt_in_advanced_aliases(tmp_path
     assert "- serial comma" in rendered
 
 
+def test_backend_preview_file_for_single_word_filename_returns_success(tmp_path: Path):
+    source = tmp_path / "Agents.md"
+    source.write_text("## Topic\nBody\n", encoding="utf-8")
+
+    backend = MarkdownFormatterBackend(root=tmp_path)
+    preview = backend.endpoint_preview_file(PreviewFileRequest(path=str(source)))
+
+    assert preview.original_path == str(source)
+    assert preview.updated_path == str(source)
+    assert preview.advanced_alias_suggestions == []
+
+
 def test_backend_list_markdown_files_filters_md_only_and_excludes_bak(tmp_path: Path):
     (tmp_path / "a.md").write_text("x", encoding="utf-8")
     (tmp_path / "a.md.bak").write_text("x", encoding="utf-8")

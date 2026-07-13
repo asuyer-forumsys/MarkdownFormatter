@@ -38,3 +38,9 @@ def test_build_frontmatter_includes_selected_opt_in_advanced_aliases():
     assert "- oxford comma" in rendered
     assert "- Serial Comma" in rendered
     assert "- serial comma" in rendered
+
+
+def test_advanced_alias_suggestions_for_single_word_title_do_not_crash():
+    suggestions = suggest_advanced_aliases("Agents")
+
+    assert suggestions == []
