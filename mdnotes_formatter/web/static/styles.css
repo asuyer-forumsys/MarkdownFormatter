@@ -120,6 +120,61 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   border-bottom: 1px solid var(--border);
 }
 
+.advanced-aliases {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: #131925;
+}
+
+.advanced-aliases h3 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.advanced-aliases p {
+  margin: 0.25rem 0 0.6rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.advanced-alias-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.alias-option {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.2rem 0.45rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #2b3547;
+  border-radius: 7px;
+  background: #101722;
+}
+
+.alias-option input {
+  margin: 0;
+}
+
+.alias-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  color: #d6ebff;
+}
+
+.alias-reason {
+  grid-column: 2;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.alias-empty {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
 #selectedPath {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.9rem;

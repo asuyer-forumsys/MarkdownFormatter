@@ -111,6 +111,7 @@ Features:
 - Side-by-side preview: original (left) vs formatted output (right)
 - Diff-like changed line highlighting on both sides
 - Syntax-highlighted markdown code view
+- Opt-in advanced alias suggestions (acronyms and equivalent names) with manual selection
 - **Format** button that applies changes (writes file + backup, rename if needed)
 
 ## Requirement-to-test traceability

@@ -7,9 +7,11 @@ const rightPaneEl = document.getElementById("rightPane");
 const formatBtnEl = document.getElementById("formatBtn");
 const refreshBtnEl = document.getElementById("refreshBtn");
 const rootInputEl = document.getElementById("rootInput");
+const advancedAliasListEl = document.getElementById("advancedAliasList");
 
 let selectedFile = null;
 let latestPreview = null;
+const selectedAdvancedAliases = new Set();
 
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
@@ -82,6 +84,44 @@ function renderFileList(files) {
   });
 }
 
+function renderAdvancedAliasSuggestions(suggestions) {
+  const safeSuggestions = suggestions || [];
+  if (safeSuggestions.length === 0) {
+    advancedAliasListEl.innerHTML = '<div class="alias-empty">No advanced alias suggestions for this note.</div>';
+    return;
+  }
+
+  advancedAliasListEl.innerHTML = safeSuggestions
+    .map((suggestion, index) => {
+      const checked = selectedAdvancedAliases.has(suggestion.alias) ? "checked" : "";
+      const encodedAlias = encodeURIComponent(suggestion.alias);
+      return `
+        <label class="alias-option" for="alias-${index}">
+          <input id="alias-${index}" type="checkbox" data-alias="${encodedAlias}" ${checked} />
+          <span class="alias-value">${escapeHtml(suggestion.alias)}</span>
+          <span class="alias-reason">${escapeHtml(suggestion.reason)}</span>
+        </label>
+      `;
+    })
+    .join("");
+
+  advancedAliasListEl.querySelectorAll("input[type='checkbox']").forEach((checkbox) => {
+    checkbox.addEventListener("change", async (event) => {
+      const encodedAlias = event.target.dataset.alias;
+      if (!encodedAlias) return;
+      const alias = decodeURIComponent(encodedAlias);
+
+      if (event.target.checked) {
+        selectedAdvancedAliases.add(alias);
+      } else {
+        selectedAdvancedAliases.delete(alias);
+      }
+
+      await loadPreview();
+    });
+  });
+}
+
 async function refreshFiles() {
   const root = rootInputEl.value.trim();
   const query = root ? `?root=${encodeURIComponent(root)}` : "";
@@ -96,29 +136,23 @@ async function refreshFiles() {
   }
 }
 
-async function selectFile(path) {
-  selectedFile = path;
-  latestPreview = null;
-  formatBtnEl.disabled = true;
-
-  document.querySelectorAll("#fileList button").forEach((btn) => {
-    btn.classList.toggle("active", btn.textContent === path);
-  });
-
-  selectedPathEl.textContent = path;
-  renameInfoEl.textContent = "Loading preview…";
-  renameInfoEl.className = "";
+async function loadPreview() {
+  if (!selectedFile) return;
 
   try {
     const preview = await fetch("/api/preview", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ path }),
+      body: JSON.stringify({
+        path: selectedFile,
+        selected_advanced_aliases: Array.from(selectedAdvancedAliases),
+      }),
     }).then(asJson);
 
     latestPreview = preview;
     renderCodePane(leftPaneEl, preview.original_content, preview.changed_left_lines, "changed-left");
     renderCodePane(rightPaneEl, preview.formatted_content, preview.changed_right_lines, "changed-right");
+    renderAdvancedAliasSuggestions(preview.advanced_alias_suggestions);
 
     if (preview.renamed) {
       renameInfoEl.textContent = `Will rename to: ${preview.updated_path}`;
@@ -129,12 +163,30 @@ async function selectFile(path) {
     }
 
     formatBtnEl.disabled = false;
-    setStatus(`Preview ready for ${path}`);
+    setStatus(`Preview ready for ${selectedFile}`);
   } catch (error) {
     renameInfoEl.textContent = `Preview failed: ${error.message}`;
     renameInfoEl.className = "error";
     setStatus(`Preview failed: ${error.message}`, true);
   }
+}
+
+async function selectFile(path) {
+  selectedFile = path;
+  latestPreview = null;
+  selectedAdvancedAliases.clear();
+  formatBtnEl.disabled = true;
+
+  document.querySelectorAll("#fileList button").forEach((btn) => {
+    btn.classList.toggle("active", btn.textContent === path);
+  });
+
+  selectedPathEl.textContent = path;
+  renameInfoEl.textContent = "Loading preview…";
+  renameInfoEl.className = "";
+  advancedAliasListEl.innerHTML = '<div class="alias-empty">Loading suggestions…</div>';
+
+  await loadPreview();
 }
 
 async function formatSelectedFile() {
@@ -146,7 +198,10 @@ async function formatSelectedFile() {
     const result = await fetch("/api/format", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ path: selectedFile }),
+      body: JSON.stringify({
+        path: selectedFile,
+        selected_advanced_aliases: Array.from(selectedAdvancedAliases),
+      }),
     }).then(asJson);
 
     selectedFile = result.updated_path;

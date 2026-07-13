@@ -48,11 +48,12 @@ def extract_frontmatter_and_body(text: str) -> tuple[str, str]:
     return "", text
 
 
-def build_formatted_output(path: Path | str) -> FormattedOutput:
+def build_formatted_output(path: Path | str, additional_aliases: list[str] | None = None) -> FormattedOutput:
     """Build formatted markdown output without mutating the filesystem.
 
     Args:
         path: Path to an existing markdown file.
+        additional_aliases: Optional user-selected aliases to include.
 
     Returns:
         A `FormattedOutput` with full rendered content and resulting paths.
@@ -76,7 +77,7 @@ def build_formatted_output(path: Path | str) -> FormattedOutput:
     _, body = extract_frontmatter_and_body(original_text)
     title_h1 = stem_to_title(normalized_stem)
 
-    new_frontmatter = build_frontmatter(normalized_stem)
+    new_frontmatter = build_frontmatter(normalized_stem, additional_aliases=additional_aliases)
     new_body = normalize_body(body.splitlines(), title_h1=title_h1)
     rendered_text = f"{new_frontmatter}\n{new_body}"
 
@@ -89,7 +90,7 @@ def build_formatted_output(path: Path | str) -> FormattedOutput:
     )
 
 
-def format_markdown_file(path: Path | str) -> Path:
+def format_markdown_file(path: Path | str, additional_aliases: list[str] | None = None) -> Path:
     """Format one markdown note file in place and return final path.
 
     Behavior:
@@ -100,11 +101,12 @@ def format_markdown_file(path: Path | str) -> Path:
 
     Args:
         path: Path to an existing markdown file.
+        additional_aliases: Optional user-selected aliases to include.
 
     Returns:
         The final file path after any rename.
     """
-    output = build_formatted_output(path)
+    output = build_formatted_output(path, additional_aliases=additional_aliases)
 
     shutil.copy2(output.original_path, output.backup_path)
 
