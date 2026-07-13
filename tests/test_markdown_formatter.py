@@ -50,7 +50,7 @@ print('hi')
     assert "- My notes about dogs" not in content
 
     # Topics covered then single H1 title
-    assert "\nTopics covered\n" in content
+    assert "\nTopics covered:\n" in content
     assert "- Care" in content
     assert "- Training" in content
     assert "\n# My Note About Dogs\n" in content
@@ -60,7 +60,7 @@ print('hi')
     assert "Dogs are awesome pets that help people." in content
 
     # Heading/code/paragraph separated by exactly one blank line at least for key transitions.
-    assert "Topics covered\n- Care\n- Training\n\n# My Note About Dogs" in content
+    assert "Topics covered:\n- Care\n- Training\n\n# My Note About Dogs" in content
     assert "Be consistent.\n\n```python" in content
 
 
