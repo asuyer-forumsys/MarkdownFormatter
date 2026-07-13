@@ -44,7 +44,7 @@ def test_filename_normalization_cases(tmp_path: Path, raw_stem: str, expected: s
     assert updated.name == expected
 
 
-def test_frontmatter_aliases_include_spaced_singular_plural_and_kebab(tmp_path: Path):
+def test_frontmatter_aliases_include_only_title_and_lowercase_phrase(tmp_path: Path):
     src = _write(tmp_path / "Network-notes.md", "Plain text\n")
 
     updated = format_markdown_file(src)
@@ -53,11 +53,26 @@ def test_frontmatter_aliases_include_spaced_singular_plural_and_kebab(tmp_path: 
     assert content.startswith("---\n")
     assert "aliases:" in content
     assert "- Network Notes" in content
-    assert "- Network notes" in content
-    assert "- Network note" in content
-    assert "- Network notes" in content
-    assert "- Network-notes" in content
-    assert "- network-notes" in content
+    assert "- network notes" in content
+
+    # No kebab alias or extra inflections.
+    assert "- Network-notes" not in content
+    assert "- network-notes" not in content
+    assert "- Network note" not in content
+
+
+def test_aliases_drop_numeric_tokens_and_do_not_include_numbers(tmp_path: Path):
+    src = _write(tmp_path / "02-missing-topics-covered.md", "Plain text\n")
+
+    updated = format_markdown_file(src)
+    content = _read(updated)
+
+    assert "- Missing Topics Covered" in content
+    assert "- missing topics covered" in content
+    assert "- 02 missing topics covered" not in content
+
+    alias_lines = [line.strip() for line in content.splitlines() if line.strip().startswith("- ")]
+    assert alias_lines == ["- Missing Topics Covered", "- missing topics covered"]
 
 
 def test_existing_frontmatter_is_replaced_with_normalized_alias_frontmatter(tmp_path: Path):
@@ -358,3 +373,13 @@ def test_h1_matches_filename_title_case(tmp_path: Path):
     content = _read(updated)
 
     assert re.search(r"\n# Zero Trust Security\n", content)
+
+
+def test_h1_ignores_leading_and_trailing_numeric_filename_tokens(tmp_path: Path):
+    src = _write(tmp_path / "01-agent-patterns-2024.md", "## Topic\nBody\n")
+
+    updated = format_markdown_file(src)
+    content = _read(updated)
+
+    assert re.search(r"\n# Agent Patterns\n", content)
+    assert "# 01 Agent Patterns 2024" not in content

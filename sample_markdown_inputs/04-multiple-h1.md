@@ -1,18 +1,19 @@
 ---
 aliases:
-  - 04 Multiple H1
-  - 04 multiple h1
-  - 04 multiple h1s
-  - 04-multiple-h1
+  - Multiple h1
+  - Multiple h1s
 ---
 
 Topics covered
 - Intro
+- Extra heading
 
-# 04 Multiple H1
+# Multiple H1
 
 ## Intro
 
 Paragraph one.
+
+# Another Top Title
 
 Paragraph two.

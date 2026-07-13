@@ -11,6 +11,27 @@ from __future__ import annotations
 import re
 
 
+def _strip_edge_numeric_tokens(tokens: list[str]) -> list[str]:
+    """Return tokens with leading/trailing numeric-only tokens removed.
+
+    Numeric prefixes/suffixes are often ordering artifacts in filenames and are
+    not useful in natural-language titles.
+    """
+    if not tokens:
+        return tokens
+
+    start = 0
+    end = len(tokens)
+
+    while start < end and tokens[start].isdigit():
+        start += 1
+    while end > start and tokens[end - 1].isdigit():
+        end -= 1
+
+    stripped = tokens[start:end]
+    return stripped if stripped else tokens
+
+
 def normalize_filename_stem(stem: str) -> str:
     """Return normalized kebab-case stem with first character capitalized.
 
@@ -43,7 +64,9 @@ def stem_to_title(stem: str) -> str:
     Example:
         ``"my-note-about-dogs" -> "My Note About Dogs"``
     """
-    return " ".join(word.capitalize() for word in stem.split("-"))
+    tokens = [word for word in stem.split("-") if word]
+    tokens = _strip_edge_numeric_tokens(tokens)
+    return " ".join(word.capitalize() for word in tokens)
 
 
 def singularize(phrase: str) -> str:
