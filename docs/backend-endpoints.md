@@ -62,7 +62,8 @@ Notes:
 
 ```json
 {
-  "path": "/absolute/or/relative/path/to/file.md"
+  "path": "/absolute/or/relative/path/to/file.md",
+  "selected_advanced_aliases": ["Serial Comma"]
 }
 ```
 
@@ -76,13 +77,20 @@ Notes:
   "original_content": "...",
   "formatted_content": "...",
   "changed_left_lines": [1, 2, 7],
-  "changed_right_lines": [1, 2, 9]
+  "changed_right_lines": [1, 2, 9],
+  "advanced_alias_suggestions": [
+    {
+      "alias": "Serial Comma",
+      "reason": "Common alternative term for 'Oxford Comma'."
+    }
+  ]
 }
 ```
 
 Notes:
 - Non-mutating endpoint.
 - Designed for diff-like preview UI.
+- `advanced_alias_suggestions` are opt-in; they are **not** auto-applied.
 
 ### `format_file`
 
@@ -91,7 +99,8 @@ Notes:
 
 ```json
 {
-  "path": "/absolute/or/relative/path/to/file.md"
+  "path": "/absolute/or/relative/path/to/file.md",
+  "selected_advanced_aliases": ["Serial Comma", "serial comma"]
 }
 ```
 

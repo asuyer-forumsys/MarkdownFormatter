@@ -6,6 +6,7 @@ formatting internals directly.
 """
 
 from .contracts import (
+    AliasSuggestion,
     EndpointInfo,
     FormatFileRequest,
     FormatFileResponse,
@@ -17,6 +18,7 @@ from .contracts import (
 from .endpoints import MarkdownFormatterBackend
 
 __all__ = [
+    "AliasSuggestion",
     "EndpointInfo",
     "FormatFileRequest",
     "FormatFileResponse",

@@ -77,7 +77,10 @@ class _WebHandler(BaseHTTPRequestHandler):
         try:
             payload = self._read_json_body()
             response = self.backend.endpoint_preview_file(
-                PreviewFileRequest(path=payload["path"]),
+                PreviewFileRequest(
+                    path=payload["path"],
+                    selected_advanced_aliases=payload.get("selected_advanced_aliases"),
+                ),
             )
             self._write_json(HTTPStatus.OK, asdict(response))
         except Exception as exc:  # pragma: no cover - exercised in integration
@@ -88,7 +91,10 @@ class _WebHandler(BaseHTTPRequestHandler):
         try:
             payload = self._read_json_body()
             response = self.backend.endpoint_format_file(
-                FormatFileRequest(path=payload["path"]),
+                FormatFileRequest(
+                    path=payload["path"],
+                    selected_advanced_aliases=payload.get("selected_advanced_aliases"),
+                ),
             )
             self._write_json(HTTPStatus.OK, asdict(response))
         except Exception as exc:  # pragma: no cover - exercised in integration

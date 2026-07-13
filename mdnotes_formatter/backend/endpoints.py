@@ -11,6 +11,7 @@ from difflib import SequenceMatcher
 from pathlib import Path
 
 from .contracts import (
+    AliasSuggestion,
     EndpointInfo,
     FormatFileRequest,
     FormatFileResponse,
@@ -19,7 +20,9 @@ from .contracts import (
     PreviewFileRequest,
     PreviewFileResponse,
 )
+from ..filename_rules import normalize_filename_stem
 from ..formatter import build_formatted_output, format_markdown_file
+from ..frontmatter_rules import suggest_advanced_aliases
 
 
 class MarkdownFormatterBackend:
@@ -106,11 +109,20 @@ class MarkdownFormatterBackend:
         file_path = self._resolve_within_root(request.path)
         original_content = file_path.read_text(encoding="utf-8")
 
-        output = build_formatted_output(file_path)
+        output = build_formatted_output(
+            file_path,
+            additional_aliases=request.selected_advanced_aliases or [],
+        )
         left_lines, right_lines = self._compute_changed_line_sets(
             original=original_content,
             formatted=output.rendered_text,
         )
+
+        normalized_stem = normalize_filename_stem(file_path.stem)
+        suggestions = [
+            AliasSuggestion(alias=item.alias, reason=item.reason)
+            for item in suggest_advanced_aliases(normalized_stem)
+        ]
 
         return PreviewFileResponse(
             original_path=str(file_path),
@@ -120,12 +132,16 @@ class MarkdownFormatterBackend:
             formatted_content=output.rendered_text,
             changed_left_lines=left_lines,
             changed_right_lines=right_lines,
+            advanced_alias_suggestions=suggestions,
         )
 
     def endpoint_format_file(self, request: FormatFileRequest) -> FormatFileResponse:
         """Format and normalize one markdown note file (mutating endpoint)."""
         original_path = self._resolve_within_root(request.path)
-        updated_path = format_markdown_file(original_path)
+        updated_path = format_markdown_file(
+            original_path,
+            additional_aliases=request.selected_advanced_aliases or [],
+        )
 
         return FormatFileResponse(
             original_path=str(original_path),

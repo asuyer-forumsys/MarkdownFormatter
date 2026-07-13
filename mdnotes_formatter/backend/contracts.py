@@ -10,14 +10,29 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
+class AliasSuggestion:
+    """Suggested opt-in alias produced by alias intelligence.
+
+    Attributes:
+        alias: Suggested alias text.
+        reason: Human-readable reason for why this suggestion exists.
+    """
+
+    alias: str
+    reason: str
+
+
+@dataclass(frozen=True)
 class FormatFileRequest:
     """Input payload for the mutating format-file backend endpoint.
 
     Attributes:
         path: Path string to an existing `.md` file that should be reformatted.
+        selected_advanced_aliases: Optional user-selected opt-in aliases to add.
     """
 
     path: str
+    selected_advanced_aliases: list[str] | None = None
 
 
 @dataclass(frozen=True)
@@ -43,9 +58,12 @@ class PreviewFileRequest:
 
     Attributes:
         path: Path string to an existing `.md` file.
+        selected_advanced_aliases: Optional user-selected opt-in aliases to
+            include in preview rendering.
     """
 
     path: str
+    selected_advanced_aliases: list[str] | None = None
 
 
 @dataclass(frozen=True)
@@ -60,6 +78,7 @@ class PreviewFileResponse:
         formatted_content: Rendered markdown after applying formatter rules.
         changed_left_lines: 1-indexed source line numbers involved in change.
         changed_right_lines: 1-indexed rendered line numbers involved in change.
+        advanced_alias_suggestions: Optional alias suggestions (opt-in only).
     """
 
     original_path: str
@@ -69,6 +88,7 @@ class PreviewFileResponse:
     formatted_content: str
     changed_left_lines: list[int]
     changed_right_lines: list[int]
+    advanced_alias_suggestions: list[AliasSuggestion]
 
 
 @dataclass(frozen=True)

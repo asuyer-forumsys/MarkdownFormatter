@@ -50,6 +50,35 @@ def test_backend_preview_file_returns_before_after_and_changed_lines(tmp_path: P
     assert "line one line two" in preview.formatted_content
     assert len(preview.changed_left_lines) > 0
     assert len(preview.changed_right_lines) > 0
+    assert isinstance(preview.advanced_alias_suggestions, list)
+
+
+def test_backend_preview_includes_opt_in_advanced_alias_suggestions(tmp_path: Path):
+    source = tmp_path / "Oxford-comma.md"
+    source.write_text("## Topic\nline one\n", encoding="utf-8")
+
+    backend = MarkdownFormatterBackend(root=tmp_path)
+    preview = backend.endpoint_preview_file(PreviewFileRequest(path=str(source)))
+
+    aliases = {item.alias for item in preview.advanced_alias_suggestions}
+    assert {"Serial Comma", "serial comma"}.issubset(aliases)
+
+
+def test_backend_format_file_can_apply_selected_opt_in_advanced_aliases(tmp_path: Path):
+    source = tmp_path / "Oxford-comma.md"
+    source.write_text("## Topic\nline one\n", encoding="utf-8")
+
+    backend = MarkdownFormatterBackend(root=tmp_path)
+    response = backend.endpoint_format_file(
+        FormatFileRequest(
+            path=str(source),
+            selected_advanced_aliases=["Serial Comma", "serial comma"],
+        ),
+    )
+
+    rendered = Path(response.updated_path).read_text(encoding="utf-8")
+    assert "- Serial Comma" in rendered
+    assert "- serial comma" in rendered
 
 
 def test_backend_list_markdown_files_filters_md_only_and_excludes_bak(tmp_path: Path):
