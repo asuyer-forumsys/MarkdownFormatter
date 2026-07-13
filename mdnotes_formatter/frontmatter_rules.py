@@ -86,8 +86,9 @@ def suggest_advanced_aliases(normalized_stem: str) -> list[AdvancedAliasSuggesti
     if not base_aliases:
         return []
 
-    title_alias = base_aliases[0]
-    lower_alias = base_aliases[1]
+    stem_for_aliases = _stem_without_numeric_tokens(normalized_stem)
+    title_alias = stem_to_title(stem_for_aliases)
+    lower_alias = title_alias.lower()
 
     suggestions: list[AdvancedAliasSuggestion] = []
     seen: set[str] = set(base_aliases)
