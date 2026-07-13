@@ -75,6 +75,16 @@ def test_aliases_drop_numeric_tokens_and_do_not_include_numbers(tmp_path: Path):
     assert alias_lines == ["- Missing Topics Covered", "- missing topics covered"]
 
 
+def test_one_word_filename_does_not_duplicate_filename_as_alias(tmp_path: Path):
+    src = _write(tmp_path / "Agents.md", "Plain text\n")
+
+    updated = format_markdown_file(src)
+    content = _read(updated)
+
+    alias_lines = [line.strip() for line in content.splitlines() if line.strip().startswith("- ")]
+    assert alias_lines == ["- agents"]
+
+
 def test_existing_frontmatter_is_replaced_with_normalized_alias_frontmatter(tmp_path: Path):
     src = _write(
         tmp_path / "Storage-systems.md",
@@ -115,7 +125,7 @@ Notes.
     content = _read(updated)
 
     # Topics section appears before H1 and includes H2+ headings in source order.
-    assert "\nTopics covered\n- Consensus\n- Raft internals\n- Fault tolerance\n\n# Distributed Systems\n" in content
+    assert "\nTopics covered:\n- Consensus\n  - Raft internals\n- Fault tolerance\n\n# Distributed Systems\n" in content
 
 
 def test_top_level_h1_is_after_topics_and_only_h1(tmp_path: Path):
@@ -204,6 +214,46 @@ Body text.
     assert "- Wrong A" not in content
 
 
+def test_topics_covered_header_uses_colon_and_replaces_similar_existing_header(tmp_path: Path):
+    src = _write(
+        tmp_path / "Topic-variation.md",
+        """TOPICS   covered :
+- stale
+
+## Real Topic
+Body text.
+""",
+    )
+
+    updated = format_markdown_file(src)
+    content = _read(updated)
+
+    assert "Topics covered:" in content
+    assert content.count("Topics covered:") == 1
+    assert "- stale" not in content
+    assert "- Real Topic" in content
+
+
+def test_topics_covered_list_indents_subsections_by_heading_depth(tmp_path: Path):
+    src = _write(
+        tmp_path / "Hierarchy-topics.md",
+        """## Parent Topic
+Details.
+
+### Child Topic
+Child details.
+
+#### Grandchild Topic
+Grandchild details.
+""",
+    )
+
+    updated = format_markdown_file(src)
+    content = _read(updated)
+
+    assert "Topics covered:\n- Parent Topic\n  - Child Topic\n    - Grandchild Topic\n" in content
+
+
 def test_topics_deduplicate_duplicate_headings(tmp_path: Path):
     src = _write(
         tmp_path / "Dedup-topics.md",
@@ -259,13 +309,31 @@ echo hello
     assert "```bash\necho hello" in content
 
 
+def test_equations_between_double_dollar_blocks_preserve_multiline_layout(tmp_path: Path):
+    src = _write(
+        tmp_path / "Math-layout.md",
+        """## Formula
+
+$$
+a = b + c
+d = e + f
+$$
+""",
+    )
+
+    updated = format_markdown_file(src)
+    content = _read(updated)
+
+    assert "$$\na = b + c\nd = e + f\n$$" in content
+
+
 def test_no_h2_headings_still_gets_topics_covered_header(tmp_path: Path):
     src = _write(tmp_path / "No-topics.md", "Just a paragraph.\n")
 
     updated = format_markdown_file(src)
     content = _read(updated)
 
-    assert "Topics covered\n\n# No Topics\n" in content
+    assert "Topics covered:\n\n# No Topics\n" in content
 
 
 def test_lists_are_preserved_as_list_blocks(tmp_path: Path):
@@ -326,7 +394,7 @@ print('ok')
     assert "foo: bar" not in content
 
     # Body structure and normalization
-    assert "Topics covered\n- Real Topic\n\n# My Bad Note File\n" in content
+    assert "Topics covered:\n- Real Topic\n\n# My Bad Note File\n" in content
     assert content.count("\n# ") == 1
     assert "This paragraph is wrapped badly." in content
     assert "text line one text line two" in content

@@ -62,12 +62,16 @@ def build_base_aliases(normalized_stem: str) -> list[str]:
     """Return default always-on aliases.
 
     Base aliases are intentionally conservative:
-    - title-case phrase
-    - lowercase phrase
+    - multi-word notes: title-case phrase + lowercase phrase
+    - single-word notes: lowercase phrase only (avoids filename duplication)
     """
     stem_for_aliases = _stem_without_numeric_tokens(normalized_stem)
     title_alias = stem_to_title(stem_for_aliases)
     lower_alias = title_alias.lower()
+
+    if len(title_alias.split()) == 1:
+        return [lower_alias]
+
     return [title_alias, lower_alias]
 
 
